@@ -24,11 +24,12 @@ export function NotificationBell({ className }: NotificationBellProps) {
       )}
       aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
     >
-      <Bell className="h-5 w-5" />
+      <Bell className="h-5 w-5" aria-hidden="true" />
       {badgeText && (
         <span
           className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white shadow-sm animate-in fade-in"
           data-testid="notification-badge"
+          aria-hidden="true"
         >
           {badgeText}
         </span>

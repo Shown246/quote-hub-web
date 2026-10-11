@@ -15,6 +15,7 @@ export interface UseNotificationsResult {
   markRead: (id: string) => void;
   isLoading: boolean;
   isFetching: boolean;
+  isError: boolean;
   error: unknown;
   refetch: () => Promise<unknown>;
 }
@@ -34,6 +35,7 @@ export function useNotifications(): UseNotificationsResult {
     data: queryData = [],
     isLoading,
     isFetching,
+    isError,
     error,
     refetch,
   } = useQuery<NotificationItem[]>({
@@ -49,9 +51,12 @@ export function useNotifications(): UseNotificationsResult {
     staleTime: 10000,
   });
 
-  const notifications =
-    queryClient.getQueryData<NotificationItem[]>(NOTIFICATIONS_QUERY_KEY) ?? queryData;
-  const unreadCount = notifications.filter((n) => n.readAt === null).length;
+  const notifications = isAuthenticated
+    ? (queryClient.getQueryData<NotificationItem[]>(NOTIFICATIONS_QUERY_KEY) ?? queryData)
+    : [];
+  const unreadCount = isAuthenticated
+    ? notifications.filter((n) => n.readAt === null).length
+    : 0;
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
@@ -59,8 +64,8 @@ export function useNotifications(): UseNotificationsResult {
         method: "PATCH",
       });
     },
-    onMutate: () => {
-      queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
       const previousNotifications = queryClient.getQueryData<NotificationItem[]>(
         NOTIFICATIONS_QUERY_KEY
       );
@@ -92,8 +97,8 @@ export function useNotifications(): UseNotificationsResult {
         method: "PATCH",
       });
     },
-    onMutate: (id: string) => {
-      queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
       const previousNotifications = queryClient.getQueryData<NotificationItem[]>(
         NOTIFICATIONS_QUERY_KEY
       );
@@ -135,6 +140,7 @@ export function useNotifications(): UseNotificationsResult {
     markRead,
     isLoading,
     isFetching,
+    isError,
     error,
     refetch,
   };

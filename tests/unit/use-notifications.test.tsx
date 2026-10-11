@@ -171,4 +171,24 @@ describe("useNotifications Hook", () => {
       expect(n1?.readAt).toBeNull();
     });
   });
+
+  it("exposes isError and reflects query error state", async () => {
+    vi.spyOn(apiClientModule, "apiClient").mockRejectedValueOnce(new Error("Network fail"));
+
+    const { result } = renderHook(() => useNotifications(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+  });
+
+  it("returns empty notifications and zero unreadCount when unauthenticated even if cache is populated", async () => {
+    queryClient.setQueryData(["notifications"], [
+      { id: "n-1", type: "LIKE", readAt: null },
+    ]);
+    vi.spyOn(useAuthModule, "useAuth").mockReturnValue({ isAuthenticated: false } as any);
+
+    const { result } = renderHook(() => useNotifications(), { wrapper });
+    expect(result.current.notifications).toEqual([]);
+    expect(result.current.unreadCount).toBe(0);
+  });
 });

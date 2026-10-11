@@ -13,8 +13,7 @@ const mockDisconnect = vi.fn();
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  // @ts-expect-error mock window IntersectionObserver
-  window.IntersectionObserver = vi.fn().mockImplementation((callback) => ({
+  (window as any).IntersectionObserver = vi.fn().mockImplementation((callback) => ({
     observe: mockObserve,
     unobserve: mockUnobserve,
     disconnect: mockDisconnect,

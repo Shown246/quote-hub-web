@@ -80,4 +80,23 @@ describe("NotificationsPage", () => {
     fireEvent.click(markAllButton);
     expect(markAllReadSpy).toHaveBeenCalledTimes(1);
   });
+
+  it("renders error state with retry button when query fails", () => {
+    const refetchSpy = vi.fn();
+    vi.spyOn(useNotificationsModule, "useNotifications").mockReturnValue({
+      notifications: [],
+      unreadCount: 0,
+      markAllRead: vi.fn(),
+      markRead: vi.fn(),
+      isLoading: false,
+      isError: true,
+      refetch: refetchSpy,
+    } as any);
+
+    render(<NotificationsPage />);
+    expect(screen.getByText(/Failed to load notifications/i)).toBeInTheDocument();
+    const retryBtn = screen.getByRole("button", { name: /Try again/i });
+    fireEvent.click(retryBtn);
+    expect(refetchSpy).toHaveBeenCalledTimes(1);
+  });
 });

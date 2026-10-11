@@ -16,6 +16,7 @@ export interface NotificationItemCardProps {
 function formatRelativeTime(dateString: string): string {
   try {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
@@ -105,7 +106,7 @@ export function NotificationItemCard({
           />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
-        <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-background border shadow-xs">
+        <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-background border shadow-sm">
           {getTypeIcon()}
         </div>
       </div>
