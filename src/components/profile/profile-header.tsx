@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { FollowButton } from "./follow-button";
 import { ProfileEditDialog } from "./profile-edit-dialog";
 import type { UserProfile } from "@/types/api";
 
@@ -88,14 +89,14 @@ export function ProfileHeader({
               Edit Profile
             </Button>
           ) : (
-            <Button
-              variant={isFollowing ? "outline" : "default"}
-              onClick={onFollowToggle}
-              disabled={isLoadingFollow}
+            <FollowButton
+              userId={user.id}
+              isOwnProfile={isOwnProfile}
+              initialFollowing={isFollowing}
+              initialFollowerCount={user.followerCount}
+              onToggle={onFollowToggle}
               className="w-full sm:w-auto font-medium"
-            >
-              {isFollowing ? "Following" : "Follow"}
-            </Button>
+            />
           )}
         </div>
       </div>

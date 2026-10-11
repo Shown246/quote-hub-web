@@ -58,6 +58,12 @@ export interface Quote {
   themeKey?: string;                // Target theme key (e.g. "classic-serif")
   likeCount: number;
   repostCount: number;
+  liked?: boolean;
+  isLiked?: boolean;
+  reposted?: boolean;
+  isReposted?: boolean;
+  bookmarked?: boolean;
+  isBookmarked?: boolean;
   createdAt: string;
   updatedAt?: string;
   deletedAt?: string | null;

@@ -6,7 +6,10 @@ import { getThemeDefinition } from "@/themes/registry";
 import { QuoteAttribution } from "./quote-attribution";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, Repeat2, Bookmark, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { LikeButton } from "./like-button";
+import { RepostButton } from "./repost-button";
+import { BookmarkButton } from "./bookmark-button";
 import { QuoteEditDialog } from "./quote-edit-dialog";
 import { QuoteDeleteDialog } from "./quote-delete-dialog";
 
@@ -111,18 +114,22 @@ export function QuoteCard({
       </div>
 
       <div className="flex items-center justify-between border-t pt-3 text-muted-foreground text-xs">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1">
-            <Heart className="h-4 w-4" />
-            <span>{quote.likeCount}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <Repeat2 className="h-4 w-4" />
-            <span>{quote.repostCount}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <Bookmark className="h-4 w-4" />
-          </span>
+        <div className="flex items-center gap-1">
+          <LikeButton
+            quoteId={quote.id}
+            isOwner={isOwner}
+            initialLiked={quote.liked ?? quote.isLiked}
+            initialLikeCount={quote.likeCount}
+          />
+          <RepostButton
+            quoteId={quote.id}
+            initialReposted={quote.reposted ?? quote.isReposted}
+            initialRepostCount={quote.repostCount}
+          />
+          <BookmarkButton
+            quoteId={quote.id}
+            initialBookmarked={quote.bookmarked ?? quote.isBookmarked}
+          />
         </div>
         {quote.createdAt && (
           <time dateTime={quote.createdAt}>
