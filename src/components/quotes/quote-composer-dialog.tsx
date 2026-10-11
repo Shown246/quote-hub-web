@@ -134,7 +134,7 @@ export function QuoteComposerDialog({
               id="quote-text-input"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="What wisdom would you like to share?"
+              placeholder="Write your quote or words of wisdom..."
               rows={4}
               className="resize-none"
             />

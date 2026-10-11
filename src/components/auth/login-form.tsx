@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { signInSocial } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ export interface LoginFormProps {
 
 export function LoginForm({ onSuccess, className }: LoginFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, isLoading: authLoading } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -34,7 +35,8 @@ export function LoginForm({ onSuccess, className }: LoginFormProps) {
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push("/");
+        const redirectParam = searchParams?.get("redirect");
+        router.push(redirectParam || "/feed/for-you");
       }
     } catch (err: any) {
       if (err?.errors && typeof err.errors === "object") {
