@@ -27,7 +27,7 @@ export function AuditLogRow({ log }: AuditLogRowProps) {
     if (action.includes("SUSPEND") || action.includes("DELETE") || action.includes("TAKEDOWN")) {
       return <Badge variant="destructive" className="font-mono text-xs">{action}</Badge>;
     }
-    if (action.includes("REINSTATE") || action.includes("CREATE")) {
+    if (action.includes("REINSTATE") || action.includes("CREATE") || action.includes("ACTIVATE")) {
       return <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-mono text-xs">{action}</Badge>;
     }
     return <Badge variant="outline" className="font-mono text-xs">{action}</Badge>;

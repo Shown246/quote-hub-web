@@ -19,4 +19,22 @@ describe("AuditLogRow", () => {
     expect(screen.getByText("Admin User")).toBeInTheDocument();
     expect(screen.getByText(/Spam/i)).toBeInTheDocument();
   });
+
+  it("handles null metadata gracefully without errors", () => {
+    const log = {
+      id: "log-2",
+      action: "ADMIN_RECONCILED_COUNTERS",
+      resourceType: "SYSTEM",
+      resourceId: "counters",
+      metadata: null,
+      createdAt: "2026-03-01T16:00:00.000Z",
+      actorUser: null,
+    };
+
+    render(<AuditLogRow log={log} />);
+    expect(screen.getByText("ADMIN_RECONCILED_COUNTERS")).toBeInTheDocument();
+    expect(screen.getByText("System")).toBeInTheDocument();
+    expect(screen.queryByText(/View Metadata Details/i)).not.toBeInTheDocument();
+  });
 });
+

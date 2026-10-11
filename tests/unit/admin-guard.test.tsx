@@ -22,9 +22,9 @@ describe("AdminGuard", () => {
     expect(screen.getByText(/admin access required/i)).toBeInTheDocument();
   });
 
-  it("renders protected admin content when user has ADMIN role", () => {
+  it("renders protected admin content when user has ADMIN role and ACTIVE status", () => {
     vi.spyOn(useAuthModule, "useAuth").mockReturnValue({
-      user: { id: "u-admin", role: "ADMIN" } as any,
+      user: { id: "u-admin", role: "ADMIN", status: "ACTIVE" } as any,
       isAdmin: true,
       isAuthenticated: true,
       isLoading: false,
@@ -38,4 +38,23 @@ describe("AdminGuard", () => {
 
     expect(screen.getByText("Admin Restricted Content")).toBeInTheDocument();
   });
+
+  it("denies access when user has ADMIN role but status is SUSPENDED", () => {
+    vi.spyOn(useAuthModule, "useAuth").mockReturnValue({
+      user: { id: "u-admin-suspended", role: "ADMIN", status: "SUSPENDED" } as any,
+      isAdmin: true,
+      isAuthenticated: true,
+      isLoading: false,
+    } as any);
+
+    render(
+      <AdminGuard>
+        <div>Admin Restricted Content</div>
+      </AdminGuard>
+    );
+
+    expect(screen.queryByText("Admin Restricted Content")).not.toBeInTheDocument();
+    expect(screen.getByText(/admin access required/i)).toBeInTheDocument();
+  });
 });
+

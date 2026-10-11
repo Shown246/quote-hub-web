@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { AuditLogRow, type AuditLogItem } from "@/components/admin/audit-log-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,20 +28,21 @@ const PAGE_SIZE = 25;
 export default function AdminAuditLogsPage() {
   const [resourceType, setResourceType] = useState<string>("ALL");
   const [resourceId, setResourceId] = useState("");
+  const debouncedResourceId = useDebounce(resourceId, 300);
   const [page, setPage] = useState(0);
 
   const queryParams = new URLSearchParams();
   if (resourceType !== "ALL") {
     queryParams.set("resourceType", resourceType);
   }
-  if (resourceId.trim()) {
-    queryParams.set("resourceId", resourceId.trim());
+  if (debouncedResourceId.trim()) {
+    queryParams.set("resourceId", debouncedResourceId.trim());
   }
   queryParams.set("limit", String(PAGE_SIZE));
   queryParams.set("offset", String(page * PAGE_SIZE));
 
   const { data, isLoading, isError, refetch } = useQuery<AuditLogsResponse>({
-    queryKey: ["admin", "audit-logs", resourceType, resourceId, page],
+    queryKey: ["admin", "audit-logs", resourceType, debouncedResourceId, page],
     queryFn: async () => {
       const url = `/api/v1/admin/audit-logs${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
       return apiClient<AuditLogsResponse>(url);
@@ -89,7 +91,7 @@ export default function AdminAuditLogsPage() {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-          {["ALL", "USER", "QUOTE"].map((type) => (
+          {["ALL", "USER", "QUOTE", "SYSTEM"].map((type) => (
             <button
               key={type}
               onClick={() => {

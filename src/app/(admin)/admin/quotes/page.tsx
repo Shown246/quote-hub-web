@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { TakedownQuoteModal } from "@/components/admin/takedown-quote-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,14 +16,18 @@ import {
   RefreshCw, 
   AlertTriangle,
   Heart,
-  Repeat2
+  Repeat2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 interface AdminQuoteItem {
   id: string;
+  userId?: string;
   text: string;
   isOriginal: boolean;
   authorName?: string | null;
+  themeId?: string | null;
   themeKey?: string | null;
   likeCount: number;
   repostCount: number;
@@ -40,26 +45,34 @@ interface AdminQuotesResponse {
   total: number;
 }
 
+const PAGE_SIZE = 50;
+
 export default function AdminQuotesPage() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [includeDeleted, setIncludeDeleted] = useState(true);
+  const [page, setPage] = useState(0);
   const [selectedQuoteIdForTakedown, setSelectedQuoteIdForTakedown] = useState<string | null>(null);
 
   const queryParams = new URLSearchParams();
-  if (search.trim()) {
-    queryParams.set("search", search.trim());
+  if (debouncedSearch.trim()) {
+    queryParams.set("search", debouncedSearch.trim());
   }
   if (includeDeleted) {
     queryParams.set("includeDeleted", "true");
   }
+  queryParams.set("limit", String(PAGE_SIZE));
+  queryParams.set("offset", String(page * PAGE_SIZE));
 
   const { data, isLoading, isError, refetch } = useQuery<AdminQuotesResponse>({
-    queryKey: ["admin", "quotes", search, includeDeleted],
+    queryKey: ["admin", "quotes", debouncedSearch, includeDeleted, page],
     queryFn: async () => {
       const url = `/api/v1/admin/quotes${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
       return apiClient<AdminQuotesResponse>(url);
     },
   });
+
+  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -92,7 +105,10 @@ export default function AdminQuotesPage() {
           <Input
             placeholder="Search quote text or author..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
             className="pl-9"
           />
         </div>
@@ -101,7 +117,10 @@ export default function AdminQuotesPage() {
           <input
             type="checkbox"
             checked={includeDeleted}
-            onChange={(e) => setIncludeDeleted(e.target.checked)}
+            onChange={(e) => {
+              setIncludeDeleted(e.target.checked);
+              setPage(0);
+            }}
             className="rounded border-border text-primary focus:ring-primary"
           />
           <span>Include Taken-Down Quotes</span>
@@ -165,6 +184,10 @@ export default function AdminQuotesPage() {
                               <span className="font-semibold">@{q.author.username}</span>
                               <div className="text-muted-foreground">{q.author.displayName}</div>
                             </div>
+                          ) : q.userId ? (
+                            <div>
+                              <span className="font-mono text-xs font-medium text-foreground">User: {q.userId.slice(0, 8)}...</span>
+                            </div>
                           ) : (
                             <span className="text-muted-foreground italic">Unknown User</span>
                           )}
@@ -177,7 +200,7 @@ export default function AdminQuotesPage() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <Badge variant="outline" className="text-xs capitalize font-mono">
-                          {q.themeKey || "default"}
+                          {q.themeKey || q.themeId || "default"}
                         </Badge>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -225,6 +248,35 @@ export default function AdminQuotesPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <span className="text-xs text-muted-foreground">
+            Page {page + 1} of {totalPages} ({data?.total} total quotes)
+          </span>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
           </div>
         </div>
       )}

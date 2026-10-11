@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { SuspendUserModal } from "@/components/admin/suspend-user-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,9 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   UserX,
-  RefreshCw 
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 interface AdminUserItem {
@@ -36,9 +39,13 @@ interface AdminUsersResponse {
   total: number;
 }
 
+const PAGE_SIZE = 50;
+
 export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [page, setPage] = useState(0);
   const [selectedUserForSuspension, setSelectedUserForSuspension] = useState<{
     id: string;
     username: string;
@@ -48,17 +55,21 @@ export default function AdminUsersPage() {
   if (statusFilter !== "ALL") {
     queryParams.set("status", statusFilter);
   }
-  if (search.trim()) {
-    queryParams.set("search", search.trim());
+  if (debouncedSearch.trim()) {
+    queryParams.set("search", debouncedSearch.trim());
   }
+  queryParams.set("limit", String(PAGE_SIZE));
+  queryParams.set("offset", String(page * PAGE_SIZE));
 
   const { data, isLoading, isError, refetch } = useQuery<AdminUsersResponse>({
-    queryKey: ["admin", "users", statusFilter, search],
+    queryKey: ["admin", "users", statusFilter, debouncedSearch, page],
     queryFn: async () => {
       const url = `/api/v1/admin/users${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
       return apiClient<AdminUsersResponse>(url);
     },
   });
+
+  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
   const reinstateMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -126,7 +137,10 @@ export default function AdminUsersPage() {
           <Input
             placeholder="Search by username or name..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
             className="pl-9"
           />
         </div>
@@ -135,7 +149,10 @@ export default function AdminUsersPage() {
           {["ALL", "ACTIVE", "SUSPENDED", "DELETED"].map((status) => (
             <button
               key={status}
-              onClick={() => setStatusFilter(status)}
+              onClick={() => {
+                setStatusFilter(status);
+                setPage(0);
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                 statusFilter === status
                   ? "bg-primary text-primary-foreground font-semibold"
@@ -244,6 +261,35 @@ export default function AdminUsersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <span className="text-xs text-muted-foreground">
+            Page {page + 1} of {totalPages} ({data?.total} total users)
+          </span>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+            >
+              Next
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
           </div>
         </div>
       )}

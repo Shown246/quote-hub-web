@@ -11,7 +11,8 @@ export interface AdminGuardProps {
 }
 
 export function AdminGuard({ children }: AdminGuardProps) {
-  const { isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isLoading } = useAuth();
+  const isAuthorized = Boolean(isAdmin && user?.status === "ACTIVE");
 
   if (isLoading) {
     return (
@@ -23,7 +24,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAuthorized) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center space-y-4">
         <div className="p-3 bg-destructive/10 text-destructive rounded-full">
