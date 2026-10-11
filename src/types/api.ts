@@ -54,12 +54,13 @@ export interface Quote {
   text: string;                    // 1-280 Unicode characters
   isOriginal: boolean;             // True if user is author
   authorName: string | null;       // Null if isOriginal is true
-  themeId: string;                 // Target theme UUID
+  themeId?: string;                 // Target theme UUID
+  themeKey?: string;                // Target theme key (e.g. "classic-serif")
   likeCount: number;
   repostCount: number;
   createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
+  updatedAt?: string;
+  deletedAt?: string | null;
   user?: Pick<UserProfile, "id" | "username" | "displayName" | "profileImageUrl">;
   theme?: Theme;
 }
