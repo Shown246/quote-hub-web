@@ -5,6 +5,7 @@ import { useSearch } from "@/hooks/use-search";
 import { SearchInput } from "@/components/search/search-input";
 import SearchPage from "@/app/(app)/search/page";
 import * as apiClientModule from "@/lib/api-client";
+import { AuthContext } from "@/components/auth/auth-provider";
 import React from "react";
 
 // Mock next/navigation
@@ -45,6 +46,24 @@ describe("useSearch Hook", () => {
       expect(result.current.isSuccess).toBe(true);
     });
     expect(result.current.data?.[0].rankScore).toBe(0.88);
+  });
+
+  it("forwards abort signal to apiClient", async () => {
+    const fetchSpy = vi.spyOn(apiClientModule, "apiClient").mockResolvedValueOnce({
+      data: [{ id: "q-1", text: "Stoic wisdom", rankScore: 0.9 }],
+    });
+
+    const { result } = renderHook(() => useSearch("stoic"), { wrapper });
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/search?q=stoic"),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      })
+    );
   });
 });
 
@@ -117,6 +136,59 @@ describe("SearchPage", () => {
       const resultsContainer = screen.getByTestId("search-results");
       expect(within(resultsContainer).getByText("The unexamined life is not worth living.")).toBeInTheDocument();
       expect(screen.getByText(/88% match/i)).toBeInTheDocument();
+    });
+  });
+
+  it("passes currentUserId to QuoteCard so owners can edit/delete their quotes", async () => {
+    vi.spyOn(apiClientModule, "apiClient").mockResolvedValue({
+      data: [
+        {
+          id: "q-my-quote",
+          text: "My own quote here.",
+          isOriginal: true,
+          authorName: null,
+          likeCount: 1,
+          repostCount: 0,
+          createdAt: "2026-03-01T10:00:00.000Z",
+          rankScore: 0.95,
+          username: "myuser",
+          displayName: "My User",
+          author: {
+            id: "user-current-id",
+            username: "myuser",
+            displayName: "My User",
+            avatarUrl: null,
+            profileImageUrl: null,
+          },
+        },
+      ],
+    });
+
+    const mockAuthContext = {
+      user: { id: "user-current-id", username: "myuser" },
+      session: { id: "sess-1" },
+      isLoading: false,
+      isAuthenticated: true,
+      login: vi.fn(),
+      logout: vi.fn(),
+      register: vi.fn(),
+      refetchSession: vi.fn(),
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={mockAuthContext as any}>
+          <SearchPage />
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+
+    const input = screen.getByPlaceholderText(/search quotes, authors, or topics/i);
+    fireEvent.change(input, { target: { value: "My own" } });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /edit quote/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /delete quote/i })).toBeInTheDocument();
     });
   });
 });

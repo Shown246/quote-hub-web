@@ -29,9 +29,9 @@ export function useSearch(query: string, options?: UseSearchOptions) {
 
   return useQuery<SearchResult[]>({
     queryKey: ["search", trimmed, limit],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const url = `/api/v1/search?q=${encodeURIComponent(trimmed)}&limit=${limit}`;
-      const res = await apiClient<{ data: SearchResult[] }>(url);
+      const res = await apiClient<{ data: SearchResult[] }>(url, { signal });
       return res?.data ?? [];
     },
     enabled: trimmed.length > 0,

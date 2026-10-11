@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { SearchInput } from "@/components/search/search-input";
 import { useSearch } from "@/hooks/use-search";
 import { QuoteCard } from "@/components/quotes/quote-card";
 import { TrendingWidget } from "@/components/feed/trending-widget";
 import { PresentationModeToggle } from "@/components/feed/presentation-mode-toggle";
 import { usePresentationMode } from "@/hooks/use-presentation-mode";
+import { AuthContext } from "@/components/auth/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Sparkles } from "lucide-react";
@@ -16,6 +17,8 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const { data: results, isLoading, isError, error } = useSearch(query);
   const { mode: presentationMode } = usePresentationMode();
+  const auth = useContext(AuthContext);
+  const currentUserId = auth?.user?.id ?? null;
 
   const hasQuery = query.trim().length > 0;
 
@@ -134,7 +137,11 @@ export default function SearchPage() {
                           {matchPercentage}% match
                         </Badge>
                       </div>
-                      <QuoteCard quote={quoteData} presentationMode={presentationMode} />
+                      <QuoteCard
+                        quote={quoteData}
+                        currentUserId={currentUserId}
+                        presentationMode={presentationMode}
+                      />
                     </div>
                   );
                 })}

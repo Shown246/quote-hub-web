@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FeedTabs } from "@/components/feed/feed-tabs";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { AuthContext } from "@/components/auth/auth-provider";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users } from "lucide-react";
 

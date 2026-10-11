@@ -13,13 +13,13 @@ export function useInfiniteFeed(endpoint: string, options?: UseInfiniteFeedOptio
 
   return useInfiniteQuery<FeedResponse>({
     queryKey: ["feed", endpoint, limit],
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam, signal }) => {
       const separator = endpoint.includes("?") ? "&" : "?";
       let url = `${endpoint}${separator}limit=${limit}`;
       if (pageParam) {
         url += `&cursor=${encodeURIComponent(pageParam as string)}`;
       }
-      return apiClient<FeedResponse>(url, { credentials: "include" });
+      return apiClient<FeedResponse>(url, { credentials: "include", signal });
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) =>

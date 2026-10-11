@@ -61,6 +61,36 @@ describe("useInfiniteFeed", () => {
 
     expect(result.current.hasNextPage).toBe(false);
   });
+
+  it("forwards exact nextCursor and signal when fetchNextPage is called for page N+1", async () => {
+    const fetchSpy = vi.spyOn(apiClientModule, "apiClient")
+      .mockResolvedValueOnce({
+        data: [{ type: "ORIGINAL_QUOTE", quote: { id: "q-1", text: "Page 1" } }],
+        pagination: { nextCursor: "opaque_cursor_token_123", hasMore: true },
+      })
+      .mockResolvedValueOnce({
+        data: [{ type: "ORIGINAL_QUOTE", quote: { id: "q-2", text: "Page 2" } }],
+        pagination: { nextCursor: null, hasMore: false },
+      });
+
+    const { result } = renderHook(() => useInfiniteFeed("/api/v1/feed/for-you"), { wrapper });
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    await result.current.fetchNextPage();
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      expect.stringContaining("cursor=opaque_cursor_token_123"),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      })
+    );
+  });
 });
 
 describe("FeedStream component", () => {
