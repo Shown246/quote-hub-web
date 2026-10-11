@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { countUnicodeCharacters } from "@/lib/unicode";
@@ -22,12 +23,17 @@ export function QuoteComposerDialog({
   onSuccess,
 }: QuoteComposerDialogProps) {
   const queryClient = useQueryClient();
+  const [mounted, setMounted] = useState(false);
   const [text, setText] = useState("");
   const [isOriginal, setIsOriginal] = useState(true);
   const [authorName, setAuthorName] = useState("");
   const [selectedThemeId, setSelectedThemeId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: themes = [] } = useQuery<Theme[]>({
     queryKey: ["themes"],
@@ -96,7 +102,7 @@ export function QuoteComposerDialog({
     }
   };
 
-  return (
+  const dialogContent = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in"
       role="dialog"
@@ -213,4 +219,10 @@ export function QuoteComposerDialog({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined" && mounted) {
+    return createPortal(dialogContent, document.body);
+  }
+
+  return dialogContent;
 }

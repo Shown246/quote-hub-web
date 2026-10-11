@@ -18,6 +18,6 @@ test.describe("Quote-Hub Primary User Flow Journey", () => {
     await page.getByPlaceholder(/write your quote/i).fill("Simplicity is prerequisite for reliability. 🚀");
     await page.getByRole("dialog").getByRole("button", { name: /publish|post/i }).click();
 
-    await expect(page.getByText("Simplicity is prerequisite for reliability. 🚀")).toBeVisible();
+    await expect(page.getByText("Simplicity is prerequisite for reliability. 🚀").first()).toBeVisible();
   });
 });
