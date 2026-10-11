@@ -14,6 +14,7 @@ import {
   type SignUpData,
   type AuthResponse,
 } from "@/lib/auth-client";
+import { apiClient } from "@/lib/api-client";
 import type { UserProfile } from "@/types/api";
 
 export interface AuthContextValue {
@@ -43,7 +44,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const res = await authClient.getSession();
       if (res && res.user) {
-        setUser(res.user);
+        if ((res.user as any).role) {
+          setUser(res.user);
+        } else {
+          try {
+            const profile = await apiClient<UserProfile>("/api/v1/users/me");
+            setUser({ ...res.user, ...profile });
+          } catch {
+            setUser(res.user as UserProfile);
+          }
+        }
         setSession(res.session ?? null);
       } else {
         setUser(null);
@@ -68,13 +78,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const res = await authClient.signInEmail(credentials);
         try {
           const sessionData = await authClient.getSession();
-          if (sessionData && sessionData.user) {
-            setUser(sessionData.user);
-            setSession(sessionData.session ?? null);
-          } else if (res && res.user) {
-            setUser(res.user as UserProfile);
-            setSession(res.session ?? null);
+          const targetUser = sessionData?.user || res?.user;
+          if (targetUser && (targetUser as any).role) {
+            setUser(targetUser as UserProfile);
+          } else if (targetUser) {
+            try {
+              const profile = await apiClient<UserProfile>("/api/v1/users/me");
+              setUser({ ...targetUser, ...profile });
+            } catch {
+              setUser(targetUser as UserProfile);
+            }
           }
+          setSession(sessionData?.session ?? res?.session ?? null);
         } catch {
           if (res && res.user) {
             setUser(res.user as UserProfile);
@@ -96,13 +111,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const res = await authClient.signUpEmail(data);
         try {
           const sessionData = await authClient.getSession();
-          if (sessionData && sessionData.user) {
-            setUser(sessionData.user);
-            setSession(sessionData.session ?? null);
-          } else if (res && res.user) {
-            setUser(res.user as UserProfile);
-            setSession(res.session ?? null);
+          const targetUser = sessionData?.user || res?.user;
+          if (targetUser && (targetUser as any).role) {
+            setUser(targetUser as UserProfile);
+          } else if (targetUser) {
+            try {
+              const profile = await apiClient<UserProfile>("/api/v1/users/me");
+              setUser({ ...targetUser, ...profile });
+            } catch {
+              setUser(targetUser as UserProfile);
+            }
           }
+          setSession(sessionData?.session ?? res?.session ?? null);
         } catch {
           if (res && res.user) {
             setUser(res.user as UserProfile);
