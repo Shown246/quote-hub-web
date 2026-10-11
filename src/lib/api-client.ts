@@ -8,22 +8,39 @@ export class ApiError extends Error {
   errors?: Record<string, string[]>;
   retryAfter?: number;
 
-  constructor(params: {
-    status: number;
-    code: string;
-    detail: string;
-    instance?: string;
-    errors?: Record<string, string[]>;
-    retryAfter?: number;
-  }) {
-    super(params.detail || params.code || `API Error (${params.status})`);
-    this.name = "ApiError";
-    this.status = params.status;
-    this.code = params.code;
-    this.detail = params.detail;
-    this.instance = params.instance;
-    this.errors = params.errors;
-    this.retryAfter = params.retryAfter;
+  constructor(
+    paramsOrMessage:
+      | string
+      | {
+          status: number;
+          code: string;
+          detail: string;
+          instance?: string;
+          errors?: Record<string, string[]>;
+          retryAfter?: number;
+        },
+    status?: number,
+    code?: string,
+    detail?: string,
+    instance?: string
+  ) {
+    if (typeof paramsOrMessage === "string") {
+      super(detail || paramsOrMessage);
+      this.name = "ApiError";
+      this.status = status ?? 500;
+      this.code = code ?? "UNKNOWN_ERROR";
+      this.detail = detail ?? paramsOrMessage;
+      this.instance = instance;
+    } else {
+      super(paramsOrMessage.detail || paramsOrMessage.code || `API Error (${paramsOrMessage.status})`);
+      this.name = "ApiError";
+      this.status = paramsOrMessage.status;
+      this.code = paramsOrMessage.code;
+      this.detail = paramsOrMessage.detail;
+      this.instance = paramsOrMessage.instance;
+      this.errors = paramsOrMessage.errors;
+      this.retryAfter = paramsOrMessage.retryAfter;
+    }
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
