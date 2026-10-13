@@ -56,6 +56,7 @@ describe("Mobile Navigation", () => {
     expect(screen.getByRole("link", { name: /for you/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /search/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /saved/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /notifications/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /profile/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /compose/i })).toBeInTheDocument();
   });

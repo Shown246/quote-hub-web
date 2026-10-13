@@ -5,18 +5,11 @@ import { apiClient } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SocialActionResponse } from "@/types/api";
 
-const fallbackClient = new QueryClient();
-
 export function useRepostMutation(
   quoteId: string,
   initialData?: { reposted?: boolean; repostCount?: number }
 ) {
-  let client: QueryClient;
-  try {
-    client = useQueryClient();
-  } catch {
-    client = fallbackClient;
-  }
+  const client = useQueryClient();
 
   const queryKey = ["quotes", quoteId];
   const cached = client.getQueryData<any>(queryKey);

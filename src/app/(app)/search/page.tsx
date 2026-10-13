@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useMemo } from "react";
+import Link from "next/link";
 import { SearchInput } from "@/components/search/search-input";
 import { useSearch } from "@/hooks/use-search";
 import { QuoteCard } from "@/components/quotes/quote-card";
@@ -10,7 +11,8 @@ import { usePresentationMode } from "@/hooks/use-presentation-mode";
 import { AuthContext } from "@/components/auth/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Sparkles } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, Sparkles, User } from "lucide-react";
 import type { Quote } from "@/types/api";
 
 export default function SearchPage() {
@@ -21,6 +23,33 @@ export default function SearchPage() {
   const currentUserId = auth?.user?.id ?? null;
 
   const hasQuery = query.trim().length > 0;
+
+  const matchingUsers = useMemo(() => {
+    if (!results || results.length === 0) return [];
+    const userMap = new Map<
+      string,
+      { id: string; username: string; displayName: string; profileImageUrl?: string | null }
+    >();
+    for (const r of results) {
+      const u = r.author;
+      if (u?.username && !userMap.has(u.username)) {
+        userMap.set(u.username, {
+          id: u.id,
+          username: u.username,
+          displayName: u.displayName || u.username,
+          profileImageUrl: u.profileImageUrl ?? u.avatarUrl ?? null,
+        });
+      } else if (r.username && !userMap.has(r.username)) {
+        userMap.set(r.username, {
+          id: r.id,
+          username: r.username,
+          displayName: r.displayName || r.username,
+          profileImageUrl: null,
+        });
+      }
+    }
+    return Array.from(userMap.values());
+  }, [results]);
 
   return (
     <div className="container max-w-4xl mx-auto py-6 px-4">
@@ -93,6 +122,41 @@ export default function SearchPage() {
                   We couldn&apos;t find any quotes matching &ldquo;{query}&rdquo;. Try another keyword or author name.
                 </p>
               </div>
+            )}
+
+            {hasQuery && !isLoading && matchingUsers.length > 0 && (
+              <section
+                className="space-y-3 pb-2"
+                aria-label="Matching Curators and Users"
+                data-testid="search-user-results"
+              >
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                  <User className="h-3.5 w-3.5" />
+                  <span>Curators & Users</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {matchingUsers.map((u) => (
+                    <Link
+                      key={u.username}
+                      href={`/profile/${encodeURIComponent(u.username)}`}
+                      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/40 transition-colors shadow-sm group"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={u.profileImageUrl || undefined} alt={u.username} />
+                        <AvatarFallback>
+                          {(u.displayName || u.username).slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate text-foreground group-hover:text-primary transition-colors">
+                          {u.displayName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">@{u.username}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
             )}
 
             {hasQuery && !isLoading && results && results.length > 0 && (

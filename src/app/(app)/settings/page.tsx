@@ -13,6 +13,22 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  React.useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("quote-hub-notifications-enabled") : null;
+    if (saved !== null) {
+      setNotificationsEnabled(saved === "true");
+    }
+  }, []);
+
+  const handleToggleNotifications = () => {
+    const nextVal = !notificationsEnabled;
+    setNotificationsEnabled(nextVal);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quote-hub-notifications-enabled", String(nextVal));
+    }
+  };
 
   const handleAccountDeleted = async () => {
     try {
@@ -116,6 +132,36 @@ export default function SettingsPage() {
             <span className="text-muted-foreground">Account Status: </span>
             <span className="font-medium text-foreground">{user.status}</span>
           </div>
+        </div>
+      </section>
+
+      {/* Notification Preferences (PRD Section 36) */}
+      <section className="rounded-2xl border bg-card p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <h2 className="text-lg font-semibold text-foreground">
+              Notifications
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Receive in-app alerts when someone likes or reposts your quotes, or follows you.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="Notifications"
+            aria-checked={notificationsEnabled}
+            onClick={handleToggleNotifications}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+              notificationsEnabled ? "bg-primary" : "bg-muted"
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition duration-200 ease-in-out ${
+                notificationsEnabled ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
         </div>
       </section>
 

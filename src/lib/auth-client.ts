@@ -100,6 +100,13 @@ export function signInSocial(provider: "google" = "google"): void {
   }
 }
 
+export async function finalizeUsername(username: string): Promise<UserProfile> {
+  return apiClient<UserProfile>("/api/v1/users/me/username", {
+    method: "POST",
+    body: JSON.stringify({ username }),
+  });
+}
+
 export const signInWithEmail = signInEmail;
 export const signUpWithEmail = signUpEmail;
 export const forgetPassword = requestPasswordReset;
@@ -114,6 +121,7 @@ export const authClient = {
   resetPassword,
   verifyEmail,
   signInSocial,
+  finalizeUsername,
   signIn: {
     email: signInEmail,
     social: signInSocial,

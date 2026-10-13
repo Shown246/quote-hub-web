@@ -5,19 +5,12 @@ import { apiClient } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SocialActionResponse } from "@/types/api";
 
-const fallbackClient = new QueryClient();
-
 export function useFollowMutation(
   userId: string,
   isOwnProfile: boolean = false,
   initialData?: { following?: boolean; followerCount?: number }
 ) {
-  let client: QueryClient;
-  try {
-    client = useQueryClient();
-  } catch {
-    client = fallbackClient;
-  }
+  const client = useQueryClient();
 
   const queryKey = ["users", userId];
   const cached = client.getQueryData<any>(queryKey);

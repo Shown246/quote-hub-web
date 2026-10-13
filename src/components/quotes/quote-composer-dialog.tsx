@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Theme, Quote } from "@/types/api";
+import { getThemeDefinition } from "@/themes/registry";
 import { X } from "lucide-react";
 
 export interface QuoteComposerDialogProps {
@@ -53,6 +54,9 @@ export function QuoteComposerDialog({
   const remaining = 280 - charCount;
   const isOverLimit = remaining < 0;
   const isValid = text.trim().length > 0 && !isOverLimit;
+
+  const selectedTheme = themes.find((t) => t.id === selectedThemeId);
+  const previewTheme = getThemeDefinition(selectedTheme?.key);
 
   const handleOriginalChange = (checked: boolean) => {
     setIsOriginal(checked);
@@ -141,7 +145,7 @@ export function QuoteComposerDialog({
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Write your quote or words of wisdom..."
-              rows={4}
+              rows={3}
               className="resize-none"
             />
             <div className="flex justify-between items-center text-xs">
@@ -152,7 +156,7 @@ export function QuoteComposerDialog({
                   isOverLimit ? "text-destructive font-bold" : "text-muted-foreground"
                 }`}
               >
-                {remaining}
+                {charCount} / 280
               </span>
             </div>
           </div>
@@ -173,19 +177,20 @@ export function QuoteComposerDialog({
             </label>
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="author-name-input" className="text-sm font-medium text-foreground">
-              Author name
-            </label>
-            <Input
-              id="author-name-input"
-              type="text"
-              value={authorName}
-              disabled={isOriginal}
-              onChange={(e) => setAuthorName(e.target.value)}
-              placeholder={isOriginal ? "Disabled for original quotes" : "e.g. Marcus Aurelius (optional)"}
-            />
-          </div>
+          {!isOriginal && (
+            <div className="space-y-1.5">
+              <label htmlFor="author-name-input" className="text-sm font-medium text-foreground">
+                Author name
+              </label>
+              <Input
+                id="author-name-input"
+                type="text"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                placeholder="e.g. Marcus Aurelius (optional)"
+              />
+            </div>
+          )}
 
           {themes.length > 0 && (
             <div className="space-y-1.5">
@@ -206,6 +211,24 @@ export function QuoteComposerDialog({
               </select>
             </div>
           )}
+
+          {/* Live Preview Card */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Live Preview
+            </span>
+            <div
+              data-testid="composer-live-preview"
+              className={`rounded-xl border p-4 transition-all shadow-sm ${previewTheme.containerClass}`}
+            >
+              <blockquote className={`text-base leading-relaxed ${previewTheme.textClass}`}>
+                {text.trim() ? text : "Your quote will appear here..."}
+              </blockquote>
+              <div className={`mt-3 text-xs font-medium ${previewTheme.authorClass}`}>
+                {isOriginal ? "— Original (You)" : `— ${authorName.trim() || "Attributed author"}`}
+              </div>
+            </div>
+          </div>
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>

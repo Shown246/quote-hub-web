@@ -92,6 +92,21 @@ export function MobileNav({ className }: MobileNavProps) {
         </Link>
 
         <Link
+          href="/notifications"
+          className={cn(
+            "flex flex-col items-center justify-center p-2 rounded-xl transition-colors",
+            pathname.startsWith("/notifications")
+              ? "text-primary font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+          aria-label="Notifications"
+          aria-current={pathname.startsWith("/notifications") ? "page" : undefined}
+        >
+          <Bell className="h-5 w-5" />
+          <span className="text-[10px] mt-0.5">Alerts</span>
+        </Link>
+
+        <Link
           href={profileHref}
           className={cn(
             "flex flex-col items-center justify-center p-2 rounded-xl transition-colors",

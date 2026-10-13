@@ -191,4 +191,43 @@ describe("SearchPage", () => {
       expect(screen.getByRole("button", { name: /delete quote/i })).toBeInTheDocument();
     });
   });
+
+  it("renders distinguishable user profile cards when search results include users (PRD §34)", async () => {
+    vi.spyOn(apiClientModule, "apiClient").mockResolvedValue({
+      data: [
+        {
+          id: "q-marcus",
+          text: "Waste no more time arguing about what a good man should be. Be one.",
+          isOriginal: false,
+          authorName: "Marcus Aurelius",
+          likeCount: 50,
+          repostCount: 20,
+          createdAt: "2026-03-01T10:00:00.000Z",
+          rankScore: 0.92,
+          username: "stoic_curator",
+          displayName: "Stoic Curator",
+          author: {
+            id: "user-stoic",
+            username: "stoic_curator",
+            displayName: "Stoic Curator",
+            avatarUrl: null,
+            profileImageUrl: "https://example.com/avatar.webp",
+          },
+        },
+      ],
+    });
+
+    render(<SearchPage />, { wrapper });
+
+    const input = screen.getByPlaceholderText(/search quotes, authors, or topics/i);
+    fireEvent.change(input, { target: { value: "stoic" } });
+
+    await waitFor(() => {
+      const userSection = screen.getByTestId("search-user-results");
+      expect(userSection).toBeInTheDocument();
+      expect(within(userSection).getByText("Stoic Curator")).toBeInTheDocument();
+      expect(within(userSection).getByText("@stoic_curator")).toBeInTheDocument();
+      expect(within(userSection).getByRole("link")).toHaveAttribute("href", "/profile/stoic_curator");
+    });
+  });
 });

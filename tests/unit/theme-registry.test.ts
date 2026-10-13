@@ -9,6 +9,12 @@ describe("Theme Registry", () => {
     expect(theme.fontFamily).toContain("serif");
   });
 
+  it("returns minimal-editorial theme styles correctly", () => {
+    const theme = getThemeDefinition("minimal-editorial");
+    expect(theme.key).toBe("minimal-editorial");
+    expect(theme.name).toBe("Minimal Editorial");
+  });
+
   it("falls back to default modern-sans theme for unknown theme keys", () => {
     const theme = getThemeDefinition("unknown-theme-key");
     expect(theme.key).toBe("modern-sans");

@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useDebounce } from "@/hooks/use-debounce";
 import { SuspendUserModal } from "@/components/admin/suspend-user-modal";
+import { DeleteUserModal } from "@/components/admin/delete-user-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,10 @@ export default function AdminUsersPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(0);
   const [selectedUserForSuspension, setSelectedUserForSuspension] = useState<{
+    id: string;
+    username: string;
+  } | null>(null);
+  const [selectedUserForDeletion, setSelectedUserForDeletion] = useState<{
     id: string;
     username: string;
   } | null>(null);
@@ -251,6 +256,16 @@ export default function AdminUsersPage() {
                           Reinstate
                         </Button>
                       )}
+                      {u.status !== "DELETED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setSelectedUserForDeletion({ id: u.id, username: u.username })}
+                        >
+                          Ban & Delete
+                        </Button>
+                      )}
                       {u.status === "DELETED" && (
                         <span className="text-xs text-muted-foreground italic">
                           Deactivated
@@ -299,6 +314,14 @@ export default function AdminUsersPage() {
         user={selectedUserForSuspension}
         isOpen={Boolean(selectedUserForSuspension)}
         onClose={() => setSelectedUserForSuspension(null)}
+        onSuccess={() => refetch()}
+      />
+
+      {/* Permanent Ban & Deletion Modal */}
+      <DeleteUserModal
+        user={selectedUserForDeletion}
+        isOpen={Boolean(selectedUserForDeletion)}
+        onClose={() => setSelectedUserForDeletion(null)}
         onSuccess={() => refetch()}
       />
     </div>

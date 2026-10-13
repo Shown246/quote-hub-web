@@ -139,7 +139,7 @@ export function QuoteEditDialog({
                   isOverLimit ? "text-destructive font-bold" : "text-muted-foreground"
                 }`}
               >
-                {remaining}
+                {charCount} / 280
               </span>
             </div>
           </div>

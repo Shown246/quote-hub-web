@@ -37,8 +37,16 @@ describe("Profile Privacy Compliance (Review Focus)", () => {
     updatedAt: "2026-02-15T00:00:00.000Z",
   };
 
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+
+  function renderWithClient(ui: React.ReactElement) {
+    return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  }
+
   it("displays follower and following counts but never renders clickable lists", () => {
-    render(<ProfileHeader user={otherUser} isOwnProfile={false} />);
+    renderWithClient(<ProfileHeader user={otherUser} isOwnProfile={false} />);
 
     expect(screen.getByText("42")).toBeInTheDocument();
     expect(screen.getByText("15")).toBeInTheDocument();
@@ -53,21 +61,21 @@ describe("Profile Privacy Compliance (Review Focus)", () => {
   });
 
   it("renders follow button when viewing another user's profile (!isOwnProfile)", () => {
-    render(<ProfileHeader user={otherUser} isOwnProfile={false} />);
+    renderWithClient(<ProfileHeader user={otherUser} isOwnProfile={false} />);
 
     expect(screen.getByRole("button", { name: /^follow$/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /edit profile/i })).not.toBeInTheDocument();
   });
 
   it("renders edit profile button when viewing own profile (isOwnProfile)", () => {
-    render(<ProfileHeader user={ownUser} isOwnProfile={true} />);
+    renderWithClient(<ProfileHeader user={ownUser} isOwnProfile={true} />);
 
     expect(screen.getByRole("button", { name: /edit profile/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^follow$/i })).not.toBeInTheDocument();
   });
 
   it("renders display name, handle with @, bio, and join date", () => {
-    render(<ProfileHeader user={otherUser} isOwnProfile={false} />);
+    renderWithClient(<ProfileHeader user={otherUser} isOwnProfile={false} />);
 
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
     expect(screen.getByText("@bob")).toBeInTheDocument();

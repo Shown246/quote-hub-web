@@ -10,6 +10,8 @@ import { ProfileHeader } from "@/components/profile/profile-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buttonVariants } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Repeat } from "lucide-react";
+import { QuoteCard } from "@/components/quotes/quote-card";
 import type { UserProfile, Quote, PaginatedResponse } from "@/types/api";
 
 export interface ProfilePageProps {
@@ -73,6 +75,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         (profileError as any)?.code === "USER_NOT_FOUND")) ||
     (isProfileSuccess && profile?.status === "DELETED");
 
+  const [activeTab, setActiveTab] = useState<"quotes" | "reposts">("quotes");
+
   // Fetch user's quotes stream once profile is loaded and active
   const {
     data: quotesData,
@@ -81,6 +85,19 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     queryKey: ["user-quotes", profile?.id],
     queryFn: () => apiClient<PaginatedResponse<Quote>>(`/api/v1/quotes?userId=${profile?.id}`),
     enabled: Boolean(profile?.id && profile.status !== "DELETED"),
+  });
+
+  // Fetch user's reposts stream when reposts tab is active
+  const {
+    data: repostsData,
+    isLoading: isRepostsLoading,
+  } = useQuery<PaginatedResponse<Quote>>({
+    queryKey: ["user-reposts", profile?.id],
+    queryFn: () =>
+      apiClient<PaginatedResponse<Quote>>(`/api/v1/users/${profile?.id}/reposts`).catch(() =>
+        apiClient<PaginatedResponse<Quote>>(`/api/v1/quotes?userId=${profile?.id}&type=reposts`)
+      ),
+    enabled: Boolean(activeTab === "reposts" && profile?.id && profile.status !== "DELETED"),
   });
 
   // Follow / Unfollow mutation
@@ -210,6 +227,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   }
 
   const quotes = quotesData?.data || [];
+  const reposts = repostsData?.data || [];
 
   return (
     <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-8">
@@ -222,53 +240,113 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         isLoadingFollow={followMutation.isPending}
       />
 
-      {/* User Quotes Stream Section */}
-      <section className="space-y-4" aria-label="User Quotes">
-        <div className="flex items-center justify-between border-b pb-3">
-          <h2 className="text-xl font-bold tracking-tight text-foreground">
-            Quotes
-          </h2>
-          {quotesData && (
-            <span className="text-xs font-medium text-muted-foreground">
-              {quotes.length} {quotes.length === 1 ? "quote" : "quotes"}
-            </span>
-          )}
+      {/* Profile Content Tabs */}
+      <section className="space-y-6" aria-label="Profile Content">
+        <div className="flex border-b border-border space-x-6 text-sm font-medium">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "quotes"}
+            onClick={() => setActiveTab("quotes")}
+            className={`pb-3 border-b-2 transition-colors ${
+              activeTab === "quotes"
+                ? "border-primary text-foreground font-semibold"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Quotes {quotesData?.data ? `(${quotes.length})` : ""}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "reposts"}
+            onClick={() => setActiveTab("reposts")}
+            className={`pb-3 border-b-2 transition-colors ${
+              activeTab === "reposts"
+                ? "border-primary text-foreground font-semibold"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Reposts {repostsData?.data ? `(${reposts.length})` : ""}
+          </button>
         </div>
 
-        {isQuotesLoading ? (
+        {activeTab === "quotes" ? (
+          isQuotesLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-28 w-full rounded-xl" />
+              <Skeleton className="h-28 w-full rounded-xl" />
+            </div>
+          ) : quotes.length === 0 ? (
+            <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+              <p className="text-base font-medium">No quotes shared yet.</p>
+              <p className="text-sm mt-1">
+                When @{profile.username} shares quotes, they will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {quotes.map((quote) => (
+                <article
+                  key={quote.id}
+                  className="rounded-xl border bg-card p-5 shadow-sm space-y-3 transition-colors hover:border-primary/20"
+                  data-testid={`profile-quote-${quote.id}`}
+                >
+                  <blockquote className="text-base sm:text-lg font-serif italic text-foreground">
+                    &ldquo;{quote.text}&rdquo;
+                  </blockquote>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1">
+                    <span className="font-medium text-foreground/80">
+                      {quote.isOriginal
+                        ? `— ${profile.displayName}`
+                        : `— ${quote.authorName || profile.displayName}`}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <span>{quote.likeCount} likes</span>
+                      <span>{quote.repostCount} reposts</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )
+        ) : isRepostsLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-28 w-full rounded-xl" />
             <Skeleton className="h-28 w-full rounded-xl" />
           </div>
-        ) : quotes.length === 0 ? (
+        ) : reposts.length === 0 ? (
           <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
-            <p className="text-base font-medium">No quotes shared yet.</p>
+            <p className="text-base font-medium">No reposts yet.</p>
             <p className="text-sm mt-1">
-              When @{profile.username} shares quotes, they will appear here.
+              When @{profile.username} reposts quotes, they will appear here.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {quotes.map((quote) => (
-              <article
-                key={quote.id}
-                className="rounded-xl border bg-card p-5 shadow-sm space-y-3 transition-colors hover:border-primary/20"
-              >
-                <blockquote className="text-base sm:text-lg font-serif italic text-foreground">
-                  &ldquo;{quote.text}&rdquo;
-                </blockquote>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1">
-                  <span className="font-medium text-foreground/80">
-                    {quote.isOriginal
-                      ? `— ${profile.displayName}`
-                      : `— ${quote.authorName || profile.displayName}`}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <span>{quote.likeCount} likes</span>
-                    <span>{quote.repostCount} reposts</span>
-                  </div>
+            {reposts.map((quote) => (
+              <div key={quote.id} className="space-y-1.5" data-testid={`profile-repost-${quote.id}`}>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-1 font-medium">
+                  <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>{profile.displayName || `@${profile.username}`} reposted</span>
                 </div>
-              </article>
+                <article className="rounded-xl border bg-card p-5 shadow-sm space-y-3 transition-colors hover:border-primary/20">
+                  <blockquote className="text-base sm:text-lg font-serif italic text-foreground">
+                    &ldquo;{quote.text}&rdquo;
+                  </blockquote>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1">
+                    <span className="font-medium text-foreground/80">
+                      {quote.isOriginal
+                        ? `— ${quote.authorName || "Original author"}`
+                        : `— ${quote.authorName || "Unknown"}`}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <span>{quote.likeCount} likes</span>
+                      <span>{quote.repostCount} reposts</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
             ))}
           </div>
         )}
