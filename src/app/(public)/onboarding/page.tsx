@@ -56,23 +56,7 @@ function OnboardingContent() {
 
     setIsSubmitting(true);
     try {
-      try {
-        await finalizeUsername(username);
-      } catch (err: unknown) {
-        // If the endpoint is mocked/not present, treat gracefully unless it's a conflict
-        if (err instanceof ApiError) {
-          if (err.status === 409 || err.code === "CONFLICT") {
-            setError("This username is already taken. Please choose another.");
-            setIsSubmitting(false);
-            return;
-          }
-          if (err.status === 400 && err.detail) {
-            setError(err.detail);
-            setIsSubmitting(false);
-            return;
-          }
-        }
-      }
+      await finalizeUsername(username);
 
       if (refreshSession) {
         await refreshSession();
@@ -80,6 +64,18 @@ function OnboardingContent() {
       toast.success("Username finalized! Welcome to Quote-Hub.");
       router.push("/feed/for-you");
     } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        if (err.status === 409 || err.code === "CONFLICT") {
+          setError("This username is already taken. Please choose another.");
+          return;
+        }
+        if (err.status === 400 && err.detail) {
+          setError(err.detail);
+          return;
+        }
+        setError(err.detail || err.message || "Failed to finalize username");
+        return;
+      }
       const msg = err instanceof Error ? err.message : "Failed to finalize username";
       setError(msg);
     } finally {

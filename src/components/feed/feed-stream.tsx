@@ -111,6 +111,12 @@ export function FeedStream({
           themeKey: item.quote.themeKey,
           likeCount: item.quote.likeCount,
           repostCount: item.quote.repostCount,
+          liked: item.quote.liked ?? item.quote.isLiked,
+          isLiked: item.quote.isLiked ?? item.quote.liked,
+          reposted: item.quote.reposted ?? item.quote.isReposted,
+          isReposted: item.quote.isReposted ?? item.quote.reposted,
+          bookmarked: item.quote.bookmarked ?? item.quote.isBookmarked,
+          isBookmarked: item.quote.isBookmarked ?? item.quote.bookmarked,
           createdAt: item.quote.createdAt,
           user: {
             id: item.quote.author?.id ?? "",

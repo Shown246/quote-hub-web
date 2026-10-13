@@ -114,12 +114,16 @@ export function ProfileEditDialog({
     }
   };
 
-  const handleAvatarSuccess = () => {
-    if (onProfileUpdated) {
-      // Re-trigger profile update if needed
-      onProfileUpdated({
-        ...user,
-      });
+  const handleAvatarSuccess = async () => {
+    try {
+      const refreshed = await apiClient<UserProfile>("/api/v1/users/me");
+      if (onProfileUpdated) {
+        onProfileUpdated(refreshed);
+      }
+    } catch {
+      if (onProfileUpdated) {
+        onProfileUpdated({ ...user });
+      }
     }
   };
 

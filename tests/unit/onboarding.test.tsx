@@ -111,4 +111,23 @@ describe("Google OAuth Username Onboarding Screen", () => {
     ).toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
   });
+
+  it("displays an error and does not navigate on 500 server failure", async () => {
+    vi.spyOn(authClientModule, "finalizeUsername").mockRejectedValue(
+      new ApiError("Internal server fault", 500, "INTERNAL_SERVER_ERROR")
+    );
+
+    render(<OnboardingPage />);
+    const input = screen.getByLabelText(/username/i);
+    fireEvent.change(input, { target: { value: "valid_name" } });
+
+    const submitButton = screen.getByRole("button", { name: /finalize/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(/internal server fault/i);
+    });
+    expect(pushMock).not.toHaveBeenCalled();
+  });
 });
+

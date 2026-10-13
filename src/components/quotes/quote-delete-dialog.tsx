@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,13 @@ export function QuoteDeleteDialog({
   onDeleted,
 }: QuoteDeleteDialogProps) {
   const queryClient = useQueryClient();
+  const [mounted, setMounted] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -46,7 +52,7 @@ export function QuoteDeleteDialog({
     }
   };
 
-  return (
+  const dialogContent = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in"
       role="dialog"
@@ -98,4 +104,9 @@ export function QuoteDeleteDialog({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined" && mounted) {
+    return createPortal(dialogContent, document.body);
+  }
+  return dialogContent;
 }

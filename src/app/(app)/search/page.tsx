@@ -5,7 +5,6 @@ import Link from "next/link";
 import { SearchInput } from "@/components/search/search-input";
 import { useSearch } from "@/hooks/use-search";
 import { QuoteCard } from "@/components/quotes/quote-card";
-import { TrendingWidget } from "@/components/feed/trending-widget";
 import { PresentationModeToggle } from "@/components/feed/presentation-mode-toggle";
 import { usePresentationMode } from "@/hooks/use-presentation-mode";
 import { AuthContext } from "@/components/auth/auth-provider";
@@ -70,9 +69,7 @@ export default function SearchPage() {
         </div>
 
         {/* Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main search results area */}
-          <div className="lg:col-span-2 space-y-4">
+        <div className="w-full space-y-4">
             {isLoading && (
               <div className="space-y-4" data-testid="search-loading">
                 {[1, 2, 3].map((index) => (
@@ -175,6 +172,12 @@ export default function SearchPage() {
                     themeKey: result.themeKey ?? undefined,
                     likeCount: result.likeCount,
                     repostCount: result.repostCount,
+                    liked: result.liked ?? result.isLiked,
+                    isLiked: result.isLiked ?? result.liked,
+                    reposted: result.reposted ?? result.isReposted,
+                    isReposted: result.isReposted ?? result.reposted,
+                    bookmarked: result.bookmarked ?? result.isBookmarked,
+                    isBookmarked: result.isBookmarked ?? result.bookmarked,
                     createdAt: result.createdAt,
                     user: {
                       id: result.author?.id ?? "",
@@ -211,12 +214,6 @@ export default function SearchPage() {
                 })}
               </div>
             )}
-          </div>
-
-          {/* Sidebar Area with Trending Widget */}
-          <div className="hidden lg:block lg:col-span-1">
-            <TrendingWidget limit={5} />
-          </div>
         </div>
       </div>
     </div>

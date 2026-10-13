@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,10 +17,15 @@ export function DeleteAccountModal({
   onClose,
   onDeleted,
 }: DeleteAccountModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const prevIsOpenRef = useRef(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -73,7 +79,7 @@ export function DeleteAccountModal({
     }
   };
 
-  return (
+  const dialogContent = (
     <div
       role="dialog"
       aria-modal="true"
@@ -168,4 +174,9 @@ export function DeleteAccountModal({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined" && mounted) {
+    return createPortal(dialogContent, document.body);
+  }
+  return dialogContent;
 }

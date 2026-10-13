@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { useAuth } from "@/hooks/use-auth";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buttonVariants } from "@/components/ui/button";
-import { toast } from "sonner";
 import { Repeat } from "lucide-react";
 import { QuoteCard } from "@/components/quotes/quote-card";
 import type { UserProfile, Quote, PaginatedResponse } from "@/types/api";
@@ -19,7 +18,6 @@ export interface ProfilePageProps {
 }
 
 export default function ProfilePage({ params }: ProfilePageProps) {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { user: currentUser, refreshSession } = useAuth();
   const navParams = useParams<{ username: string }>();
@@ -47,8 +45,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       username = rawUsername;
     }
   }
-
-  const [isFollowing, setIsFollowing] = useState<boolean>(false);
 
   // Fetch public user profile
   const {
@@ -100,37 +96,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     enabled: Boolean(activeTab === "reposts" && profile?.id && profile.status !== "DELETED"),
   });
 
-  // Follow / Unfollow mutation
-  const followMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentUser) {
-        router.push("/login");
-        return;
-      }
-      if (!profile?.id) return;
-
-      if (isFollowing) {
-        await apiClient(`/api/v1/users/${profile.id}/follow`, { method: "DELETE" });
-        setIsFollowing(false);
-      } else {
-        await apiClient(`/api/v1/users/${profile.id}/follow`, { method: "POST" });
-        setIsFollowing(true);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", username] });
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError
-          ? err.detail || err.message
-          : err instanceof Error
-          ? err.message
-          : "Failed to update follow status";
-      toast.error(message);
-    },
-  });
-
   const isOwnProfile = Boolean(
     currentUser &&
       profile &&
@@ -143,10 +108,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     if (isOwnProfile && refreshSession) {
       refreshSession();
     }
-  };
-
-  const handleFollowToggle = () => {
-    followMutation.mutate();
   };
 
   if (isNotFound) {
@@ -234,10 +195,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       <ProfileHeader
         user={profile}
         isOwnProfile={isOwnProfile}
-        isFollowing={isFollowing}
-        onFollowToggle={handleFollowToggle}
         onProfileUpdated={handleProfileUpdated}
-        isLoadingFollow={followMutation.isPending}
       />
 
       {/* Profile Content Tabs */}

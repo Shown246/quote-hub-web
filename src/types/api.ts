@@ -37,6 +37,8 @@ export interface UserProfile {
   followingCount: number;
   createdAt: string;               // ISO 8601 date string
   updatedAt: string;
+  isFollowing?: boolean;
+  following?: boolean;
 }
 
 export interface Theme {
@@ -94,6 +96,12 @@ export interface FeedQuote {
   authorName: string | null;
   likeCount: number;
   repostCount: number;
+  liked?: boolean;
+  isLiked?: boolean;
+  reposted?: boolean;
+  isReposted?: boolean;
+  bookmarked?: boolean;
+  isBookmarked?: boolean;
   createdAt: string;
   themeKey?: string;
   author: FeedAuthor;
@@ -113,6 +121,12 @@ export interface SearchResult {
   authorName: string | null;
   likeCount: number;
   repostCount: number;
+  liked?: boolean;
+  isLiked?: boolean;
+  reposted?: boolean;
+  isReposted?: boolean;
+  bookmarked?: boolean;
+  isBookmarked?: boolean;
   createdAt: string;
   rankScore: number;               // Trigram similarity rank
   username: string;

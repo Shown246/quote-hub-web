@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,8 +21,13 @@ export function TakedownQuoteModal({
   onClose,
   onSuccess,
 }: TakedownQuoteModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!isOpen || !quoteId) return null;
 
@@ -47,7 +53,7 @@ export function TakedownQuoteModal({
     }
   };
 
-  return (
+  const dialogContent = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
@@ -117,4 +123,9 @@ export function TakedownQuoteModal({
       </div>
     </div>
   );
+
+  if (typeof document !== "undefined" && mounted) {
+    return createPortal(dialogContent, document.body);
+  }
+  return dialogContent;
 }

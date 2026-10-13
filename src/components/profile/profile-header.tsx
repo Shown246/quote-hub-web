@@ -35,13 +35,15 @@ function formatJoinDate(dateString?: string): string {
 export function ProfileHeader({
   user,
   isOwnProfile = false,
-  isFollowing = false,
+  isFollowing: isFollowingProp,
   onFollowToggle,
   onEditProfile,
   isLoadingFollow = false,
   onProfileUpdated,
 }: ProfileHeaderProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const initialFollowing =
+    isFollowingProp ?? user.isFollowing ?? user.following ?? false;
 
   const initials = (user.displayName || user.username || "U")
     .trim()
@@ -92,7 +94,7 @@ export function ProfileHeader({
             <FollowButton
               userId={user.id}
               isOwnProfile={isOwnProfile}
-              initialFollowing={isFollowing}
+              initialFollowing={initialFollowing}
               initialFollowerCount={user.followerCount}
               onToggle={onFollowToggle}
               className="w-full sm:w-auto font-medium"
