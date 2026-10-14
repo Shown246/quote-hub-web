@@ -24,12 +24,14 @@ describe("FeedStream Social Flags Preservation", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    (window as any).IntersectionObserver = vi.fn().mockImplementation((callback) => ({
-      observe: mockObserve,
-      unobserve: mockUnobserve,
-      disconnect: mockDisconnect,
-      trigger: (entries: IntersectionObserverEntry[]) => callback(entries),
-    }));
+    (window as any).IntersectionObserver = vi.fn().mockImplementation(function (callback) {
+      return {
+        observe: mockObserve,
+        unobserve: mockUnobserve,
+        disconnect: mockDisconnect,
+        trigger: (entries: IntersectionObserverEntry[]) => callback(entries),
+      };
+    });
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   });
 

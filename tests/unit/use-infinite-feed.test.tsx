@@ -13,12 +13,14 @@ const mockDisconnect = vi.fn();
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  (window as any).IntersectionObserver = vi.fn().mockImplementation((callback) => ({
-    observe: mockObserve,
-    unobserve: mockUnobserve,
-    disconnect: mockDisconnect,
-    trigger: (entries: IntersectionObserverEntry[]) => callback(entries),
-  }));
+  (window as any).IntersectionObserver = vi.fn().mockImplementation(function (callback) {
+    return {
+      observe: mockObserve,
+      unobserve: mockUnobserve,
+      disconnect: mockDisconnect,
+      trigger: (entries: IntersectionObserverEntry[]) => callback(entries),
+    };
+  });
 });
 
 describe("useInfiniteFeed", () => {
