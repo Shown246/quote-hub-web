@@ -39,5 +39,8 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^5.7.3",
     "vitest": "^5.0.4"
+  },
+  "overrides": {
+    "braces": "npm:@dieub/braces-depth-guard@3.0.3-pn.0"
   }
 }
