@@ -155,4 +155,55 @@ describe("Profile Page Reposts Tab", () => {
       expect(screen.getByText(/when @bob reposts quotes, they will appear here/i)).toBeInTheDocument();
     });
   });
+
+  it("displays original quote creator when user reposts an original quote", async () => {
+    const originalQuoteRepost = {
+      data: [
+        {
+          id: "q-orig",
+          userId: "u-3",
+          text: "Simplicity is prerequisite for reliability.",
+          isOriginal: true,
+          authorName: null,
+          user: {
+            id: "u-3",
+            username: "dijkstra",
+            displayName: "Edsger Dijkstra",
+          },
+          likeCount: 40,
+          repostCount: 15,
+          createdAt: "2026-01-04T00:00:00.000Z",
+        },
+      ],
+      pagination: { nextCursor: null, hasMore: false },
+    };
+
+    vi.spyOn(apiClientModule, "apiClient").mockImplementation(async (path: string) => {
+      if (path.includes("/api/v1/users/bob")) {
+        return mockUser as any;
+      }
+      if (path.includes("/api/v1/quotes?userId=u-2")) {
+        return mockQuotes as any;
+      }
+      if (path.includes("reposts")) {
+        return originalQuoteRepost as any;
+      }
+      throw new Error(`Unexpected path: ${path}`);
+    });
+
+    renderPage("bob");
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /reposts/i })).toBeInTheDocument();
+    });
+
+    const repostsTab = screen.getByRole("tab", { name: /reposts/i });
+    fireEvent.click(repostsTab);
+
+    await waitFor(() => {
+      expect(screen.getByText(/simplicity is prerequisite for reliability/i)).toBeInTheDocument();
+      expect(screen.getByText(/edsger dijkstra/i)).toBeInTheDocument();
+      expect(screen.getByText(/bob jones reposted/i)).toBeInTheDocument();
+    });
+  });
 });

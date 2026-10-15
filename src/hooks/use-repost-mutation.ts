@@ -62,6 +62,7 @@ export function useRepostMutation(
         client.invalidateQueries({ queryKey });
         client.invalidateQueries({ queryKey: ["feed"] });
         client.invalidateQueries({ queryKey: ["quotes"] });
+        client.invalidateQueries({ queryKey: ["user-reposts"] });
       },
     },
     client

@@ -17,34 +17,27 @@ function VerifyEmailContent() {
   const tokenExecutedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setStatus("idle");
+      return;
+    }
     if (tokenExecutedRef.current === token) return;
     tokenExecutedRef.current = token;
 
-    let mounted = true;
-    const executeVerification = async () => {
-      try {
-        await verifyEmail(token);
-        if (mounted) {
-          setStatus("success");
-        }
-      } catch (err: unknown) {
-        if (mounted) {
-          setStatus("error");
-          const msg =
-            (err as any)?.detail ||
-            (err as any)?.message ||
-            "The verification token is invalid or has expired.";
-          setErrorMessage(msg);
-        }
-      }
-    };
+    setStatus("verifying");
 
-    executeVerification();
-
-    return () => {
-      mounted = false;
-    };
+    verifyEmail(token)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err: unknown) => {
+        setStatus("error");
+        const msg =
+          (err as any)?.detail ||
+          (err as any)?.message ||
+          "The verification token is invalid or has expired.";
+        setErrorMessage(msg);
+      });
   }, [token]);
 
   return (

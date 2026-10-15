@@ -44,7 +44,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const res = await authClient.getSession();
       if (res && res.user) {
-        if ((res.user as any).role) {
+        if ((res.user as any).role && (res.user as any).username) {
           setUser(res.user);
         } else {
           try {
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const sessionData = await authClient.getSession();
           const targetUser = sessionData?.user || res?.user;
-          if (targetUser && (targetUser as any).role) {
+          if (targetUser && (targetUser as any).role && (targetUser as any).username) {
             setUser(targetUser as UserProfile);
           } else if (targetUser) {
             try {
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const sessionData = await authClient.getSession();
           const targetUser = sessionData?.user || res?.user;
-          if (targetUser && (targetUser as any).role) {
+          if (targetUser && (targetUser as any).role && (targetUser as any).username) {
             setUser(targetUser as UserProfile);
           } else if (targetUser) {
             try {

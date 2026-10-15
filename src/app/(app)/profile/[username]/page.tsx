@@ -295,7 +295,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground pt-1">
                     <span className="font-medium text-foreground/80">
                       {quote.isOriginal
-                        ? `— ${quote.authorName || "Original author"}`
+                        ? `— ${quote.authorName || quote.user?.displayName || (quote.user?.username ? `@${quote.user.username}` : "Original author")}`
                         : `— ${quote.authorName || "Unknown"}`}
                     </span>
                     <div className="flex items-center gap-4">

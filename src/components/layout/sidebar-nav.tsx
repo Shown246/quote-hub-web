@@ -62,7 +62,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
     },
     {
       name: "Profile",
-      href: user?.username ? `/profile/${user.username}` : "/login",
+      href: user?.username ? `/profile/${user.username}` : (isAuthenticated ? "/settings" : "/login"),
       icon: User,
       active: Boolean(user?.username && pathname === `/profile/${user.username}`),
     },
@@ -144,7 +144,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
         {isAuthenticated && user ? (
           <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-muted/40">
             <Link
-              href={`/profile/${user.username}`}
+              href={user.username ? `/profile/${user.username}` : "/settings"}
               aria-label="Account details"
               className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80 transition-opacity"
             >
@@ -156,7 +156,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
                   {user.displayName || user.username}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  @{user.username}
+                  {user.username ? `@${user.username}` : (user as any).email || ""}
                 </p>
               </div>
             </Link>

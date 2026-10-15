@@ -90,6 +90,31 @@ describe("LoginForm", () => {
     const googleBtn = screen.getByRole("button", { name: /google/i });
     expect(googleBtn).toBeInTheDocument();
   });
+
+  it("toggles password visibility when show/hide button is clicked", () => {
+    vi.spyOn(useAuthModule, "useAuth").mockReturnValue({
+      login: vi.fn(),
+      isLoading: false,
+    } as any);
+
+    render(<LoginForm />);
+
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const toggleBtn = screen.getByTestId("toggle-password-visibility");
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(toggleBtn).toHaveAttribute("aria-label", "Show");
+
+    fireEvent.click(toggleBtn);
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(toggleBtn).toHaveAttribute("aria-label", "Hide");
+
+    fireEvent.click(toggleBtn);
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(toggleBtn).toHaveAttribute("aria-label", "Show");
+  });
 });
 
 describe("RegisterForm", () => {
@@ -152,5 +177,30 @@ describe("RegisterForm", () => {
         password: "Password123!",
       });
     });
+  });
+
+  it("toggles password visibility when show/hide button is clicked", () => {
+    vi.spyOn(useAuthModule, "useAuth").mockReturnValue({
+      register: vi.fn(),
+      isLoading: false,
+    } as any);
+
+    render(<RegisterForm />);
+
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    const toggleBtn = screen.getByTestId("toggle-password-visibility");
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(toggleBtn).toHaveAttribute("aria-label", "Show");
+
+    fireEvent.click(toggleBtn);
+
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(toggleBtn).toHaveAttribute("aria-label", "Hide");
+
+    fireEvent.click(toggleBtn);
+
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(toggleBtn).toHaveAttribute("aria-label", "Show");
   });
 });

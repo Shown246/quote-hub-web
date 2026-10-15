@@ -15,12 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className="antialiased min-h-screen">
         <QueryProvider>
           <AuthProvider>
             {children}
-            <Toaster />
+            <Toaster theme="dark" />
           </AuthProvider>
         </QueryProvider>
       </body>

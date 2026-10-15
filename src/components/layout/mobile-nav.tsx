@@ -24,7 +24,11 @@ export function MobileNav({ className }: MobileNavProps) {
   const { user, isAuthenticated } = useAuth();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
 
-  const profileHref = user?.username ? `/profile/${user.username}` : "/login";
+  const profileHref = user?.username
+    ? `/profile/${user.username}`
+    : isAuthenticated
+    ? "/settings"
+    : "/login";
 
   return (
     <>
