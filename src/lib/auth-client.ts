@@ -64,7 +64,7 @@ export async function requestPasswordReset(
   email: string,
   redirectTo?: string
 ): Promise<{ message?: string; status?: boolean }> {
-  return apiClient<{ message?: string; status?: boolean }>("/api/auth/forget-password", {
+  return apiClient<{ message?: string; status?: boolean }>("/api/auth/request-password-reset", {
     method: "POST",
     body: JSON.stringify({ email, redirectTo }),
   });
