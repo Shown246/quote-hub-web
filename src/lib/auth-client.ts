@@ -91,13 +91,23 @@ export async function verifyEmail(
   );
 }
 
-export function signInSocial(provider: "google" = "google"): void {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-  if (typeof window !== "undefined") {
-    window.location.href = `${baseUrl.replace(/\/+$/, "")}/api/auth/sign-in/social?provider=${provider}&callbackURL=${encodeURIComponent(
-      window.location.origin
-    )}`;
+export async function signInSocial(provider: "google" = "google"): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const response = await apiClient<{ url?: string }>("/api/auth/sign-in/social", {
+    method: "POST",
+    body: JSON.stringify({
+      provider,
+      callbackURL: window.location.origin,
+      disableRedirect: true,
+    }),
+  });
+
+  if (!response?.url) {
+    throw new Error("Google sign-in could not be started. Please try again.");
   }
+
+  window.location.assign(response.url);
 }
 
 export async function finalizeUsername(username: string): Promise<UserProfile> {

@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { LoginForm } from "@/components/auth/login-form";
 import { RegisterForm } from "@/components/auth/register-form";
+import * as authClientModule from "@/lib/auth-client";
 import * as useAuthModule from "@/hooks/use-auth";
 
 describe("LoginForm", () => {
@@ -202,5 +203,39 @@ describe("RegisterForm", () => {
 
     expect(passwordInput).toHaveAttribute("type", "password");
     expect(toggleBtn).toHaveAttribute("aria-label", "Show");
+  });
+});
+
+describe.each([
+  ["LoginForm", LoginForm],
+  ["RegisterForm", RegisterForm],
+] as const)("%s Google sign-in", (_name, Form) => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(useAuthModule, "useAuth").mockReturnValue({ isLoading: false } as any);
+  });
+
+  it("disables the Google button while sign-in starts", async () => {
+    let resolve!: () => void;
+    const pending = new Promise<void>((done) => { resolve = done; });
+    const signIn = vi.spyOn(authClientModule, "signInSocial").mockReturnValue(pending);
+    render(<Form />);
+    const button = screen.getByRole("button", { name: /google/i });
+    fireEvent.click(button);
+    expect(signIn).toHaveBeenCalledWith("google");
+    expect(button).toBeDisabled();
+    resolve();
+    await waitFor(() => expect(button).toBeEnabled());
+  });
+
+  it("shows sign-in failures and allows retrying", async () => {
+    vi.spyOn(authClientModule, "signInSocial").mockRejectedValue(new Error("Google provider unavailable"));
+    render(<Form />);
+    const button = screen.getByRole("button", { name: /google/i });
+    fireEvent.click(button);
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Google provider unavailable");
+      expect(button).toBeEnabled();
+    });
   });
 });

@@ -55,8 +55,18 @@ export function LoginForm({ onSuccess, className }: LoginFormProps) {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signInSocial("google");
+  const handleGoogleSignIn = async () => {
+    setGeneralError(null);
+    setIsSubmitting(true);
+    try {
+      await signInSocial("google");
+    } catch (err: unknown) {
+      setGeneralError(
+        err instanceof Error ? err.message : "Google sign-in failed. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isLoading = isSubmitting || authLoading;
